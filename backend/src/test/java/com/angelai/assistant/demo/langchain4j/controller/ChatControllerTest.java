@@ -1,6 +1,7 @@
 package com.angelai.assistant.demo.langchain4j.controller;
 
-import com.angelai.assistant.demo.langchain4j.service.StreamingChatAssistant;
+import com.angelai.assistant.demo.langchain4j.service.llm.EnhancedAssistant;
+import com.angelai.assistant.demo.langchain4j.service.llm.StreamingChatAssistant;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -8,7 +9,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import reactor.core.publisher.Flux;
-import com.angelai.assistant.demo.langchain4j.service.OpenAiAssistant;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
@@ -29,7 +29,7 @@ class ChatControllerTest {
      * 模拟 OpenAiAssistant bean，避免真实调用 AI 服务
      */
     @MockBean
-    private OpenAiAssistant openAiAssistant;
+    private EnhancedAssistant openAiAssistant;
 
     /**
      * 测试 /api/chat/message 接口是否能正确返回 chat 响应

@@ -21,9 +21,9 @@ public class SecurityConfig {
         http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(authz -> authz
-                .requestMatchers("/api/users/register", "/api/users/login").permitAll()
-                .requestMatchers("/api/users/**").permitAll() // 允许所有用户API访问（暂时）
-                .requestMatchers("/api/chat/**").permitAll()
+                .requestMatchers("/users/register", "/users/login").permitAll()
+                .requestMatchers("/users/**").permitAll() // 允许所有用户API访问（暂时）
+                .requestMatchers("/chat/**").permitAll()
                 .anyRequest().authenticated()
             );
         return http.build();

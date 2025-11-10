@@ -1,4 +1,4 @@
-package com.angelai.assistant.demo.langchain4j.service;
+package com.angelai.assistant.demo.langchain4j.service.llm;
 
 import dev.langchain4j.service.SystemMessage;
 
