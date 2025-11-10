@@ -314,12 +314,14 @@ const ChatPage = ({ currentUser, onLogout }) => {
         
         {/* 主内容区 - 聊天界面 */}
         <Content style={{ padding: 0, overflow: 'hidden' }}>
-          <ChatComponent
-            messages={messages[activeConversationId] || []}
-            onSendMessage={handleSendMessage}
-            onClearConversation={handleClearConversation}
-            isLoading={isLoading}
-          />
+          <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <ChatComponent
+              messages={messages[activeConversationId] || []}
+              onSendMessage={handleSendMessage}
+              onClearConversation={handleClearConversation}
+              isLoading={isLoading}
+            />
+          </div>
         </Content>
       </Layout>
     </Layout>

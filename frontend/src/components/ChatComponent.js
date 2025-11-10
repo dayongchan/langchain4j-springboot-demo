@@ -15,6 +15,7 @@ const ChatComponent = ({
   const [inputValue, setInputValue] = useState('');
   const [error, setError] = useState(null);
   const messagesEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -86,13 +87,17 @@ const ChatComponent = ({
       </div>
       
       {/* 消息区域 */}
-      <div style={{ 
-        flex: 1, 
-        overflowY: 'auto', 
-        marginBottom: '16px',
-        padding: '20px',
-        backgroundColor: '#f5f5f5'
-      }}>
+      <div 
+        ref={messagesContainerRef}
+        style={{ 
+          flex: 1, 
+          overflowY: 'auto', 
+          marginBottom: '16px',
+          padding: '20px',
+          backgroundColor: '#f5f5f5',
+          maxHeight: 'calc(100vh - 200px)' // 设置最大高度
+        }}
+      >
         {messages.length === 0 ? (
           <div style={{ 
             textAlign: 'center', 
