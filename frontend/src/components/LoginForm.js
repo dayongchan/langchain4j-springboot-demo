@@ -12,7 +12,7 @@ const LoginForm = ({ onLoginSuccess }) => {
     try {
       const result = await userService.login(values.username, values.password);
       message.success('登录成功');
-      onLoginSuccess(result.user);
+      onLoginSuccess(result);
     } catch (error) {
       message.error(error.message);
     } finally {
@@ -27,7 +27,7 @@ const LoginForm = ({ onLoginSuccess }) => {
       message.success('注册成功');
       // 注册成功后自动登录
       const loginResult = await userService.login(values.username, values.password);
-      onLoginSuccess(loginResult.user);
+      onLoginSuccess(loginResult);
     } catch (error) {
       message.error(error.message);
     } finally {
@@ -43,7 +43,7 @@ const LoginForm = ({ onLoginSuccess }) => {
       minHeight: '100vh',
       background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
     }}>
-      <Card style={{ width: 400, borderRadius: 8 }} bordered={false}>
+      <Card style={{ width: 400, borderRadius: 8 }} variant={false}>
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
           <h2>AI 助手</h2>
           <p>登录或注册以开始使用</p>

@@ -1,6 +1,6 @@
 class UserService {
   constructor() {
-    this.baseUrl = 'http://localhost:8088/api/users';
+    this.baseUrl = 'http://localhost:8089/api/users';
      // 从localStorage恢复用户状态
     this.user = this.loadUserFromStorage();
   }
@@ -26,6 +26,10 @@ class UserService {
   saveUserToStorage(user) {
     try {
       localStorage.setItem('currentUser', JSON.stringify(user));
+      // 同时保存Token到localStorage
+      if (user.token) {
+        localStorage.setItem('token', user.token);
+      }
     } catch (error) {
       console.error('保存用户数据失败:', error);
     }
@@ -37,9 +41,18 @@ class UserService {
   clearUserFromStorage() {
     try {
       localStorage.removeItem('currentUser');
+      localStorage.removeItem('token');
     } catch (error) {
       console.error('清除用户数据失败:', error);
     }
+  }
+
+  /**
+   * 获取存储的Token
+   * @returns {string|null} Token或null
+   */
+  getToken() {
+    return localStorage.getItem('token');
   }
 
   /**
@@ -77,7 +90,7 @@ class UserService {
         throw new Error(data.message || '注册失败');
       }
       
-      return data;
+      return data.data;
     } catch (error) {
       if (error instanceof TypeError && error.message === 'Failed to fetch') {
         throw new Error('无法连接到服务器，请检查网络连接或确保后端服务正在运行');
@@ -119,10 +132,12 @@ class UserService {
       if (!data.success) {
         throw new Error(data.message || '登录失败');
       }
+
+      // 保存用户信息到localStorage
+      this.user = data.data;
+      this.saveUserToStorage(this.user);
       
-      this.user = data.user;
-      this.saveUserToStorage(this.user); // 保存到localStorage
-      return data;
+      return data.data;
     } catch (error) {
       if (error instanceof TypeError && error.message === 'Failed to fetch') {
         throw new Error('无法连接到服务器，请检查网络连接或确保后端服务正在运行');
@@ -152,7 +167,7 @@ class UserService {
    * @returns {boolean} 是否已登录
    */
   isLoggedIn() {
-    return !!this.user;
+    return !!this.user && !!this.getToken();
   }
 
   /**
@@ -162,7 +177,11 @@ class UserService {
    */
   async getUserConversations(userId) {
     try {
-      const response = await fetch(`${this.baseUrl}/${userId}/conversations`);
+      const response = await fetch(`${this.baseUrl}/${userId}/conversations`, {
+        headers: {
+          'Authorization': `Bearer ${this.getToken()}`
+        }
+      });
       
       // 检查响应是否为空
       const text = await response.text();
@@ -182,7 +201,7 @@ class UserService {
         throw new Error(data.message || '获取对话列表失败');
       }
       
-      return data.conversations;
+      return data.data;
     } catch (error) {
       if (error instanceof TypeError && error.message === 'Failed to fetch') {
         throw new Error('无法连接到服务器，请检查网络连接或确保后端服务正在运行');
@@ -203,6 +222,7 @@ class UserService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.getToken()}`
         },
         body: JSON.stringify({ title }),
       });
@@ -225,7 +245,7 @@ class UserService {
         throw new Error(data.message || '创建对话失败');
       }
       
-      return data.conversation;
+      return data.data;
     } catch (error) {
       if (error instanceof TypeError && error.message === 'Failed to fetch') {
         throw new Error('无法连接到服务器，请检查网络连接或确保后端服务正在运行');
@@ -243,6 +263,9 @@ class UserService {
     try {
       const response = await fetch(`${this.baseUrl}/conversations/${conversationId}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${this.getToken()}`
+        }
       });
 
       // 检查响应是否为空
@@ -263,7 +286,7 @@ class UserService {
         throw new Error(data.message || '删除对话失败');
       }
       
-      return data;
+      return data.data;
     } catch (error) {
       if (error instanceof TypeError && error.message === 'Failed to fetch') {
         throw new Error('无法连接到服务器，请检查网络连接或确保后端服务正在运行');
@@ -279,7 +302,11 @@ class UserService {
    */
   async getConversationMessages(conversationId) {
     try {
-      const response = await fetch(`${this.baseUrl}/conversations/${conversationId}/messages`);
+      const response = await fetch(`${this.baseUrl}/conversations/${conversationId}/messages`, {
+        headers: {
+          'Authorization': `Bearer ${this.getToken()}`
+        }
+      });
       
       // 检查响应是否为空
       const text = await response.text();
@@ -299,7 +326,7 @@ class UserService {
         throw new Error(data.message || '获取消息失败');
       }
       
-      return data.messages;
+      return data.data;
     } catch (error) {
       if (error instanceof TypeError && error.message === 'Failed to fetch') {
         throw new Error('无法连接到服务器，请检查网络连接或确保后端服务正在运行');
@@ -318,12 +345,19 @@ class UserService {
    */
   async saveMessage(conversationId, userId, content, senderType) {
     try {
+      const message = {
+        content: content,
+        senderType: senderType,
+        userId: userId
+      };
+
       const response = await fetch(`${this.baseUrl}/conversations/${conversationId}/messages`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.getToken()}`
         },
-        body: JSON.stringify({ userId, content, senderType }),
+        body: JSON.stringify(message),
       });
 
       // 检查响应是否为空
@@ -344,7 +378,7 @@ class UserService {
         throw new Error(data.message || '保存消息失败');
       }
       
-      return data.message;
+      return data.data;
     } catch (error) {
       if (error instanceof TypeError && error.message === 'Failed to fetch') {
         throw new Error('无法连接到服务器，请检查网络连接或确保后端服务正在运行');

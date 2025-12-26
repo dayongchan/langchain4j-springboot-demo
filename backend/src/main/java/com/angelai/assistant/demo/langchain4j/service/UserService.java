@@ -5,6 +5,7 @@ import com.angelai.assistant.demo.langchain4j.dto.LoginRequest;
 import com.angelai.assistant.demo.langchain4j.dto.RegisterRequest;
 import com.angelai.assistant.demo.langchain4j.entity.User;
 import com.angelai.assistant.demo.langchain4j.repository.UserRepository;
+import com.angelai.assistant.demo.langchain4j.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,9 @@ public class UserService {
     
     @Autowired
     private UserRepository userRepository;
+    
+    @Autowired
+    private JwtUtil jwtUtil;
     
     private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     
@@ -60,6 +64,8 @@ public class UserService {
         userDto.setId(user.getId());
         userDto.setUsername(user.getUsername());
         userDto.setEmail(user.getEmail());
+        // 生成并设置Token
+        userDto.setToken(jwtUtil.generateToken(user.getUsername(), user.getId()));
         
         return userDto;
     }

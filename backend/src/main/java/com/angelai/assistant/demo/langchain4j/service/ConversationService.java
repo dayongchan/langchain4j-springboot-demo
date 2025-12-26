@@ -41,12 +41,8 @@ public class ConversationService {
         return messageRepository.findByConversationIdOrderByCreatedAtAsc(conversationId);
     }
     
-    public Message saveMessage(Long conversationId, Long userId, String content, String senderType) {
-        Message message = new Message();
+    public Message saveMessage(Long conversationId, Message message) {
         message.setConversationId(conversationId);
-        message.setUserId(userId);
-        message.setContent(content);
-        message.setSenderType(senderType);
         return messageRepository.save(message);
     }
 }

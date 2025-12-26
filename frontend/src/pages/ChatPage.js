@@ -137,7 +137,7 @@ const ChatPage = ({ currentUser, onLogout }) => {
   };
 
   // 发送消息
-  const handleSendMessage = async (messageText) => {
+  const handleSendMessage = async (messageText, useSearch = false) => {
     if (!activeConversationId) return;
     
     // 添加用户消息到数据库
@@ -181,9 +181,11 @@ const ChatPage = ({ currentUser, onLogout }) => {
     let accumulatedResponse = '';
     
     try {
-      // 调用聊天服务发送消息
-      await chatService.sendStreamingMessage(
+      // 调用聊天服务发送消息，根据useSearch参数选择不同的方法
+    if (useSearch) {
+      await chatService.sendStreamingSearchMessage(
         messageText,
+        activeConversationId,
         (chunk) => {
           // 处理每个数据块
           accumulatedResponse += chunk;
@@ -238,6 +240,65 @@ const ChatPage = ({ currentUser, onLogout }) => {
           message.error('消息发送失败: ' + error.message);
         }
       );
+    } else {
+      await chatService.sendStreamingMessage(
+        messageText,
+        activeConversationId,
+        (chunk) => {
+          // 处理每个数据块
+          accumulatedResponse += chunk;
+          setMessages(prev => ({
+            ...prev,
+            [activeConversationId]: prev[activeConversationId].map(msg => 
+              msg.id === aiMessageId 
+                ? { ...msg, text: accumulatedResponse } 
+                : msg
+            )
+          }));
+        },
+        async () => {
+          // 完成时的处理 - 保存AI回复到数据库
+          try {
+            await userService.saveMessage(activeConversationId, currentUser.id, accumulatedResponse, 'AI');
+          } catch (error) {
+            console.error('保存AI消息失败:', error);
+            message.error('保存AI回复失败: ' + error.message);
+          }
+          
+          setMessages(prev => ({
+            ...prev,
+            [activeConversationId]: prev[activeConversationId].map(msg => 
+              msg.id === aiMessageId 
+                ? { ...msg, isStreaming: false } 
+                : msg
+            )
+          }));
+          setIsLoading(false);
+        },
+        async (error) => {
+          // 错误处理
+          console.error('Error sending message:', error);
+          
+          // 保存错误信息到数据库
+          try {
+            await userService.saveMessage(activeConversationId, currentUser.id, '抱歉，发送消息时出错: ' + error.message, 'AI');
+          } catch (saveError) {
+            console.error('保存错误消息失败:', saveError);
+          }
+          
+          setMessages(prev => ({
+            ...prev,
+            [activeConversationId]: prev[activeConversationId].map(msg => 
+              msg.id === aiMessageId 
+                ? { ...msg, text: '抱歉，发送消息时出错: ' + error.message, isStreaming: false } 
+                : msg
+            )
+          }));
+          setIsLoading(false);
+          message.error('消息发送失败: ' + error.message);
+        }
+      );
+    }
     } catch (error) {
       console.error('Error sending message:', error);
       

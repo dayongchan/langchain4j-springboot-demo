@@ -1,4 +1,4 @@
-package com.angelai.assistant.demo.langchain4j.util;
+package com.angelai.assistant.demo.langchain4j.tool;
 
 import dev.langchain4j.agent.tool.Tool;
 

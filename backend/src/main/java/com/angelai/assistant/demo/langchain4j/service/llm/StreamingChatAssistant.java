@@ -4,8 +4,7 @@ import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 import reactor.core.publisher.Flux;
 
+@SystemMessage("你是一个智能AI助手，请用中文回答用户问题。")
 public interface StreamingChatAssistant {
-
-    @SystemMessage("You are a helpful assistant. Answer in Chinese.")
     Flux<String> chat(@UserMessage String userMessage);
 }

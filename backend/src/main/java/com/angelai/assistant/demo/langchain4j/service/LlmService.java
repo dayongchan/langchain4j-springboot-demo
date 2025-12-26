@@ -3,6 +3,7 @@ package com.angelai.assistant.demo.langchain4j.service;
 import com.angelai.assistant.demo.langchain4j.enums.ChatType;
 import com.angelai.assistant.demo.langchain4j.service.llm.Assistant;
 import com.angelai.assistant.demo.langchain4j.service.llm.EnhancedAssistant;
+import com.angelai.assistant.demo.langchain4j.service.llm.SearchEnhancedAssistant;
 import com.angelai.assistant.demo.langchain4j.service.llm.SentimentAnalyzer;
 import com.angelai.assistant.demo.langchain4j.service.llm.StreamingChatAssistant;
 import dev.langchain4j.memory.ChatMemory;
@@ -19,7 +20,7 @@ import org.springframework.stereotype.Service;
 public class LlmService {
     @Value("${langchain4j.open-ai.streaming-chat-model.api-key}")
     private String apiKey;
-    @Value("${langchain4j.open-ai.streaming-chat-model.base-url}")
+    @Value("${langchain4j.open-ai.streaming-chat-model.base-url:https://api.deepseek.com/v1}")
     private String baseUrl;
     @Value("${langchain4j.open-ai.streaming-chat-model.model-name}")
     private String modelName;
@@ -47,10 +48,10 @@ public class LlmService {
         }*/
         return AiServices.builder(Assistant.class)
                 .chatModel(model)
-                .chatMemoryProvider(memoryId -> MessageWindowChatMemory.withMaxMessages(10))
+                .chatMemory(chatMemory)
                 .build();
     }
-    
+
     public EnhancedAssistant createEnhancedAssistant() {
         OpenAiChatModel model = OpenAiChatModel.builder()
                 .apiKey(apiKey)
@@ -61,18 +62,27 @@ public class LlmService {
                 .maxMessages(10)
                 .chatMemoryStore(persistentChatMemoryService)
                 .build();
-                
-        return AiServices.create(EnhancedAssistant.class, model);
+
+        return AiServices.builder(EnhancedAssistant.class).chatModel(model).chatMemory(chatMemory).build();
     }
-    
-    public StreamingChatAssistant createStreamingEnhancedAssistant() {
+
+    public StreamingChatAssistant createStreamingEnhancedAssistant(Long conversationId) {
+        String effectiveBaseUrl = (baseUrl != null && !baseUrl.isEmpty()) ? baseUrl : "https://api.deepseek.com/v1";
         StreamingChatModel model = OpenAiStreamingChatModel.builder()
                 .apiKey(apiKey)
-                .baseUrl(baseUrl)
+                .baseUrl(effectiveBaseUrl)
                 .modelName(modelName)
                 .build();
-                
-        return AiServices.create(StreamingChatAssistant.class, model);
+        ChatMemory chatMemory = MessageWindowChatMemory.builder()
+                .id(conversationId != null ? conversationId : "default")
+                .maxMessages(10)
+                .chatMemoryStore(persistentChatMemoryService)
+                .build();
+
+        return AiServices.builder(StreamingChatAssistant.class)
+                .streamingChatModel(model)
+                .chatMemory(chatMemory)
+                .build();
     }
 
     public SentimentAnalyzer createSentimentAnalyzer() {
@@ -83,5 +93,22 @@ public class LlmService {
                 .build();
 
         return AiServices.create(SentimentAnalyzer.class, model);
+    }
+    
+    public SearchEnhancedAssistant createSearchEnhancedAssistant() {
+        OpenAiChatModel model = OpenAiChatModel.builder()
+                .apiKey(apiKey)
+                .baseUrl(baseUrl)
+                .modelName(modelName)
+                .build();
+        ChatMemory chatMemory = MessageWindowChatMemory.builder()
+                .maxMessages(10)
+                .chatMemoryStore(persistentChatMemoryService)
+                .build();
+
+        return AiServices.builder(SearchEnhancedAssistant.class)
+                .chatModel(model)
+                .chatMemory(chatMemory)
+                .build();
     }
 }

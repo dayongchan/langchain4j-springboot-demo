@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Input, Button, List, Card, Typography, Space, Alert, Dropdown, Menu } from 'antd';
+import { Input, Button, List, Card, Typography, Space, Alert, Dropdown, Menu, Switch } from 'antd';
 import { SendOutlined, DeleteOutlined, ClearOutlined } from '@ant-design/icons';
 import chatService from '../services/chatService';
 
@@ -14,6 +14,7 @@ const ChatComponent = ({
 }) => {
   const [inputValue, setInputValue] = useState('');
   const [error, setError] = useState(null);
+  const [useSearch, setUseSearch] = useState(false);
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
 
@@ -32,7 +33,7 @@ const ChatComponent = ({
     setError(null);
     
     try {
-      await onSendMessage(inputValue);
+      await onSendMessage(inputValue, useSearch);
       setInputValue('');
     } catch (error) {
       console.error('Error sending message:', error);
@@ -81,7 +82,7 @@ const ChatComponent = ({
         borderBottom: '1px solid #f0f0f0'
       }}>
         <div style={{ fontWeight: 'bold' }}>对话</div>
-        <Dropdown overlay={menu} trigger={['click']}>
+        <Dropdown menu={menu} trigger={['click']}>
           <Button type="text" icon={<DeleteOutlined />} />
         </Dropdown>
       </div>
@@ -152,12 +153,30 @@ const ChatComponent = ({
         <div ref={messagesEndRef} />
       </div>
       
+      {/* 搜索选项 */}
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'flex-start', 
+        alignItems: 'center',
+        gap: '8px',
+        padding: '0 16px 8px',
+        width: '100%'
+      }}>
+        <Text>使用网络搜索</Text>
+        <Switch 
+          checked={useSearch} 
+          onChange={setUseSearch}
+          disabled={isLoading}
+        />
+      </div>
+      
       {/* 输入区域 */}
       <div style={{ 
         display: 'flex', 
         gap: '8px',
-        alignItems: 'flex-end',
-        width: '100%'
+        alignItems: 'center',
+        width: '100%',
+        padding: '0 16px 16px'
       }}>
         <TextArea
           value={inputValue}

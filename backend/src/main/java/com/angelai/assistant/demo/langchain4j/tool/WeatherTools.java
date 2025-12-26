@@ -1,4 +1,4 @@
-package com.angelai.assistant.demo.langchain4j.util;
+package com.angelai.assistant.demo.langchain4j.tool;
 
 import com.angelai.assistant.demo.langchain4j.enums.TemperatureUnit;
 import dev.langchain4j.agent.tool.P;
